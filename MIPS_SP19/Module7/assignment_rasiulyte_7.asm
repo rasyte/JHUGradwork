@@ -6,26 +6,26 @@
 # Created by: Rasa Rasiulyte 
 # Date created: 3/26/2019
 ###################################################################
-.data
-	stopped: .asciiz 		"\nProgram completed."	
-	promptnumsinlrgpool: .asciiz 	"\nEnter integer representing the large pool of possible numbers: "
-	promptnumsfromlrgpool: .asciiz 	"\nEnter integer representing the count of numbers to be selected from the large pool: "	
-	promptnumsinsmlpool: .asciiz 	"\nEnter integer representing the size of the second smaller pool of numbers: "
-	promptnumsfromsmlpool: .asciiz 	"\nEnter integer representing the count of numbers to be selected from the second pool: "	
-	probrestultmsg: .asciiz 	"\n***Probablity for the Jackpot is 1 in: "	
+				.data
+	stopped: 		.asciiz 	"\nProgram completed."	
+	promptnumsinlrgpool: 	.asciiz 	"\nEnter integer representing the large pool of possible numbers: "
+	promptnumsfromlrgpool: 	.asciiz 	"\nEnter integer representing the count of numbers to be selected from the large pool: "	
+	promptnumsinsmlpool: 	.asciiz 	"\nEnter integer representing the size of the second smaller pool of numbers: "
+	promptnumsfromsmlpool: 	.asciiz 	"\nEnter integer representing the count of numbers to be selected from the second pool: "	
+	probrestultmsg: 	.asciiz 	"\n***Probablity for the Jackpot is 1 in: "	
 	
-	k: .word 0 			#store value for k 
-	n: .word 0 			#store value for n	
-	denumerator: .word 0 		#store value for denumerator
-	numerator: .word 0 		#store value for numerator
-	probLarge: .word 0 		#store value for probablity in large pool
-	probSmall: .word 0 		#store value for probablity in small pool 
-	prob: .word 0			#store value for overall probablity 
+	k: 		.word 0 		#store value for k 
+	n: 		.word 0 		#store value for n	
+	denumerator: 	.word 0 		#store value for denumerator
+	numerator: 	.word 0 		#store value for numerator
+	probLarge: 	.word 0 		#store value for probablity in large pool
+	probSmall: 	.word 0 		#store value for probablity in small pool 
+	prob: 		.word 0			#store value for overall probablity 
 
-.text
-.globl main
-	main: 
-	#LARGE POOL WORK	
+			.text
+			.globl main
+main: 
+						#LARGE POOL WORK	
 		jal 	promptUserLargePool 	#prompt user for large pool requirements
 		sw 	$s0, n 			#$s0 - total number in large pool (n)
 		sw 	$s1, k 			#$s1 - selected number in large pool (k)
@@ -44,7 +44,7 @@
 		div 	$t0, $a0, $a1 		#calculate probablity for large pool 
 		sw 	$t0, probLarge		#store probablity value in probLarge memory address
 	
-	#SMALL POOL WORK		
+						#SMALL POOL WORK		
 		jal 	promptUserSmallPool	#prompt user for small pool requirements
 		sw 	$s2, n	 		#$s2 - total number in large pool (n)
 		sw 	$s3, k 			#$s3 - selected number in large pool (k)
@@ -63,7 +63,7 @@
 		div 	$t1, $a0, $a1
 		sw 	$t1, probSmall		#store small pool probablity value in probSmall memory address 
 		
-	#ODDS AND FINAL PROBABLITIES WORK
+						#ODDS AND FINAL PROBABLITIES WORK
 		lw 	$a0, probLarge		#calculate overall probablity for wining Jackpot 
 		lw 	$a1, probSmall
 		mul 	$t2, $a0, $a1 	
@@ -76,7 +76,7 @@
 		lw 	$a0, prob
 		syscall
 		
-	#DONE		
+						#DONE		
 		li 	$v0, 4			#tell OS the work is done here 
 		la 	$a0, stopped
 		syscall		
