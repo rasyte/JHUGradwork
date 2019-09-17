@@ -1,0 +1,21 @@
+# Computer Science 605.611 Problem Set 3, Module #3
+# Johns Hopkins University 
+# Student: Rasa Rasiulyte 
+# Description of the program: Series of MIPS true-op instructions that use the integer divide
+# instruction to produce in register $8, the result of the function $8 MOD $4 
+.data
+
+.text
+	addi $8, $zero, 30 #initilizing registers to test values
+	addi $4, $zero, 8
+	div $8, $4
+	
+	mflo $s0  #quotient is stored in hi register
+	mfhi $s1 #reminder, MOD is stored in low register
+		
+	add $8, $zero, $s1 #move MOD value to register $8 to store result
+	
+	#print it to show result
+	li $v0, 1
+	add $a0, $zero, $8
+	syscall
