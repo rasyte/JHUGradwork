@@ -1,0 +1,421 @@
+#Data section
+.data
+   
+    #Lookup
+    romanLetter: .asciiz "IVXLCDM"
+    romanValues: .byte 1, 5, 10, 50, 100, 500, 1000
+   
+    #Input
+    inputOne: .word 4
+    inputTwo: .asciiz "\n "      
+    inputThree: .asciiz "\n "      
+    inputFour: .asciiz "\n"
+   
+    #Conversion
+    left: .word 0
+    summation: .word 0
+   
+    #Input and Output
+    performAgain: .word 2
+    inputPrompt: .asciiz "\nEnter the Roman Numeral in uppercase letters (i.e. XI): "
+    yourInput: .asciiz "\nEntered input: "
+    finalOutput: .asciiz "\nIts equivalent Decimal: "
+    loopRepeater: .asciiz "\nTry another input? For YES enter 1 and For NO enter 2: "
+    stopper: .asciiz "\n\nProgram complete.\n"
+   
+    # Exception handling
+    errorHandle: .asciiz "\nEntered input have no valid characters. Try again.\n"
+#Text
+.text
+.globl main
+#Driver
+main:
+    #Prompt user to get input
+    #Print inputPrompt
+    li $v0, 4
+   
+    #Load the address
+    la $a0, inputPrompt
+   
+    syscall
+   
+    #Load contents of inputOne
+    la $a0, inputOne
+   
+    #Load length allocated for the inputOne
+    la $a1, inputOne
+   
+    #Read string from the user
+    li $v0, 8
+    syscall
+   
+    #Push the return address into the stack
+    sw $ra, 0($sp)
+   
+    #Move stack pointer
+    addi $sp, $sp, -4
+   
+    #Go to the subroutines for the lookup and the conversion
+    jal initialize
+   
+    #Pop the return address from the stack
+    lw $ra, 0($sp)
+   
+    #Move stack pointer
+    addi $sp, $sp, 4
+   
+#Show result
+showResult:
+   
+    #Load the contents of the yourInput into $a0
+    la $a0, yourInput
+   
+    #Print string
+    li $v0, 4
+    syscall
+   
+    #Load the contents of the inputOne into $a0
+    la $a0, inputOne
+   
+    #Print string
+    li $v0, 4
+    syscall
+   
+    #Load the contents of the finalOutput (string) into $a0
+    la $a0, finalOutput
+   
+    #Print string
+    li $v0, 4
+    syscall
+       
+    #Load the contents of the summation into $a0
+    lw $a0, summation
+   
+    #Print integer
+    li $v0,1
+    syscall
+   
+    #Load the contents of the loopRepeater (string) into $a0
+    la $a0, loopRepeater
+   
+    #Print string
+    li $v0, 4
+    syscall
+   
+    #Read the integer input
+    li $v0, 5
+    syscall
+   
+    #Save the input of user input
+    #And jump to the "Exit"
+    sw $v0, performAgain
+    lw $t0, performAgain
+   
+    #If the user enter a number !=1, the go to exit
+    bne $t0, 1, Exit
+   
+    #Reinitialize
+    move $s0, $zero
+   
+    #Reinitialize
+    sw $zero, summation
+   
+    #Reinitialize
+    sw $zero, left
+   
+    #If the user enters 1, then go to the start
+    j main
+#Convert Roman number to decimal value  
+initialize:
+   
+    sw $a1, 4($sp)
+   
+    #Move stack pointer
+    addi $sp, $sp, -4  
+   
+    #Load the address of the input string
+    la $t2, inputOne
+   
+    #Load the address of the roman letter to $t3
+    la $t3, romanLetter
+   
+    #Load the address of the roman values to $t4
+    la $t4, romanValues
+   
+#LoopThru
+loopThru:
+   
+    #Gets the next byte of string from L to R
+    lb $a0, ($t2)
+   
+    #When char == zero, end of input is reached
+    beq $a0, 10, return
+   
+    #When char == 1, reached start of the heading
+    beq $a0, 1, return
+   
+    #Push the return address to the stack
+    sw $ra, 8($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, -4
+    jal indexValue
+   
+    #Pop the return address from the stack
+    lw $ra, 8($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, 4
+   
+    #Move to the next character in the input
+    addi $t2, $t2, 1
+   
+    #Push the return address into the stack
+    sw $ra, 8($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, -4
+   
+    #Iterate through the loop again
+    jal loopThru
+   
+    #Pop the return address from the stack
+    lw $ra, 8($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, 4
+   
+#indexValue
+indexValue:
+   
+    #Load the 1st byte of the ROMAN
+    lb $t5, ($t3)
+   
+    #Check condition
+    beqz $t5, invalidOne
+   
+    #Check condition
+    beq $a0, $t5, getValue
+   
+    #Push the return address into the stack
+    sw $ra, 12($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, -4
+   
+    #In case of no match, jump
+    jal iterate
+   
+    #Pop the return address from the stack
+    lw $ra, 12($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, 4
+#getValue
+getValue:
+   
+    #Get address of array having roman number chars
+    la $t6, romanLetter
+    la $t7, romanValues
+   
+    #Get indexValue of element which matches the byte
+    sub $t8, $t3, $t6
+    add $t7, $t7, $t8
+   
+    #$t9 is the corresponding decimal value
+    lbu $t9, ($t7)
+    bgeu $t9, 232, adjustOneValue
+    j afterGVValue
+#adjustOneValue
+adjustOneValue:
+   
+    seq $a2, $t5, 68
+   
+    #Multiply
+    mul $t9, $t9, $zero
+   
+    #Check condition
+    beq $a2, 1, adjustDValue
+   
+    #Addi
+    addi $t9, $t9, 1000
+   
+    #Jump
+    j afterGVValue
+#adjustDValue
+adjustDValue:
+   
+    #Addi
+    addi $t9, $t9, 500
+   
+    #Jump
+    j afterGVValue
+#afterGVValue
+afterGVValue: sw $ra, 16($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, -4
+   
+    #Jump
+    jal setup
+   
+    #Reset stack pointer
+    addi $sp, $sp, 4
+   
+    #Pop the return address from the stack
+    lw $ra, 16($sp)
+   
+    #Go back   
+    jr $ra
+#iterate
+iterate:  
+   
+    #If no match, then increment and iterate thru loop
+    addi $t3, $t3, 1
+   
+    #Loop
+    jal indexValue
+   
+#setup
+setup:
+   
+    #Load summation in $s0
+    lw $s0, summation
+   
+    #Check condition
+    beqz $s0, base
+   
+    #Push the return address into the stack
+    sw $ra, 20($sp)
+   
+    #Move the stack pointer
+    addi $sp, $sp, -4
+   
+    #Jump to the subroutine which computes summation
+    jal computeSum
+   
+    #Reset stack pointer
+    addi $sp, $sp, 4
+   
+    #Pop the return address from the stack
+    lw $ra, 20($sp)
+   
+    #Go back
+    jr $ra
+   
+base:  
+    #Add value and save in $s0
+    add $s0, $s0, $t9
+       
+    #Save $s0 in summation
+    sw $s0, summation
+   
+    #Save $t9 in left
+    sw $t9, left
+   
+    #Load the address of the roman letter array into $t3
+    la $t3, romanLetter
+    addi $t2, $t2, 1
+   
+    #Jump back
+    jal loopThru
+   
+#computeSum
+computeSum:
+   
+    #Reset stack pointer
+    addi $sp, $sp, 8
+   
+    #Pop
+    lw $t1, left
+   
+    #Reset
+    sw $t9, left
+   
+    #Load the address of the roman letter into $t3
+    la $t3, romanLetter
+   
+    #Check condition
+    bge $t1, $t9, addition
+   
+    #Check condition
+    blt $t1, $t9, subtraction
+#addition
+addition:
+   
+    #Load the summation in $s0
+    lw $s0, summation
+   
+    #Add
+    add $s0, $s0, $t9
+   
+    #Store the sum result in summation
+    sw $s0, summation
+   
+    #Load the address of the roman letter into $t3
+    la $t3, romanLetter
+   
+    #Add
+    addi $t2, $t2, 1
+   
+    #Jump
+    jal loopThru
+   
+#subtraction
+subtraction:
+    #Load the summation value in $s0
+    lw $s0, summation
+   
+    #Multiply
+    mul $t1, $t1, 2
+   
+    #Subtract
+    sub $t9, $t9, $t1
+   
+    #Add
+    add $s0, $s0, $t9
+   
+    #Save result in summation
+    sw $s0, summation
+   
+    #Load the address of the roman letter into $t3
+    la $t3, romanLetter
+   
+    #Add
+    addi $t2, $t2, 1
+   
+    #Jump
+    jal loopThru
+   
+#Return
+return:
+   
+    #Save summation
+    sw $s0, summation
+   
+    #Jump to the show result to display output
+    j showResult
+   
+#Exception handler
+invalidOne:
+   
+    #Print string
+    li $v0, 4  
+   
+    #Load the address for the errorHandle
+    la $a0, errorHandle
+    syscall
+    j main
+#Exit
+Exit:
+   
+    #Print string
+    li $v0, 4
+   
+    #Load the address for the stopper
+    la $a0, stopper
+    syscall
+   
+    #Exit
+    li $v0, 10
+    syscall
